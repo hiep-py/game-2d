@@ -77,6 +77,11 @@ export class PlayerHealth {
 
         this.health = Math.max(0, this.health - damage);
         this.updateHealthBar();
+        
+        // Kiểm tra chết
+        if (this.health <= 0) {
+            this.onDeath();
+        }
 
         // Hiệu ứng nhận sát thương
         this.player.sprite.setTint(0xff0000);
@@ -221,45 +226,140 @@ export class PlayerHealth {
 
     // Hiển thị màn hình game over
     showGameOver() {
-        const width = this.scene.game.config.width;
-        const height = this.scene.game.config.height;
+        const width = this.scene.scale.width;
+        const height = this.scene.scale.height;
 
-        const gameOverText = this.scene.add.text(
+        // Overlay tối
+        const overlay = this.scene.add.rectangle(
             width / 2,
             height / 2,
-            'GAME OVER',
+            width,
+            height,
+            0x000000,
+            0.8
+        );
+        overlay.setDepth(1000);
+        overlay.setScrollFactor(0);
+
+        // Panel
+        const panel = this.scene.add.rectangle(
+            width / 2,
+            height / 2,
+            500,
+            400,
+            0x2c3e50
+        );
+        panel.setDepth(1001);
+        panel.setStrokeStyle(4, 0xe74c3c);
+        panel.setScrollFactor(0);
+
+        // Title
+        const gameOverText = this.scene.add.text(
+            width / 2,
+            height / 2 - 120,
+            'BẠN ĐÃ THUA!',
             {
-                fontSize: '64px',
-                fill: '#ff0000',
+                fontSize: '48px',
+                fill: '#e74c3c',
                 fontStyle: 'bold',
                 stroke: '#000000',
-                strokeThickness: 8
+                strokeThickness: 6
             }
         );
         gameOverText.setOrigin(0.5);
-        gameOverText.setDepth(1000);
+        gameOverText.setDepth(1002);
         gameOverText.setScrollFactor(0);
 
-        const restartText = this.scene.add.text(
+        // Subtitle
+        const subtitle = this.scene.add.text(
             width / 2,
-            height / 2 + 80,
-            'Nhấn SPACE để chơi lại',
+            height / 2 - 60,
+            'Hãy thử lại lần nữa!',
             {
                 fontSize: '24px',
                 fill: '#ffffff',
-                backgroundColor: '#000000',
-                padding: { x: 20, y: 10 }
+                fontStyle: 'italic'
             }
         );
-        restartText.setOrigin(0.5);
-        restartText.setDepth(1000);
-        restartText.setScrollFactor(0);
+        subtitle.setOrigin(0.5);
+        subtitle.setDepth(1002);
+        subtitle.setScrollFactor(0);
 
-        // Nhấn SPACE để restart
-        const spaceKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        spaceKey.on('down', () => {
-            this.scene.scene.restart();
+        // Nút Chơi lại
+        const restartBtn = this.createGameOverButton(
+            width / 2,
+            height / 2 + 20,
+            'CHƠI LẠI',
+            () => {
+                this.scene.scene.restart();
+            },
+            0x27ae60
+        );
+
+        // Nút Về Home
+        const homeBtn = this.createGameOverButton(
+            width / 2,
+            height / 2 + 100,
+            'VỀ HOME',
+            () => {
+                this.scene.scene.start('HomeScene');
+            },
+            0x3498db
+        );
+
+        // Animation title
+        this.scene.tweens.add({
+            targets: gameOverText,
+            scale: 1.1,
+            duration: 500,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
         });
+    }
+
+    // Tạo nút cho game over
+    createGameOverButton(x, y, text, callback, color) {
+        const container = this.scene.add.container(x, y);
+        container.setDepth(1002);
+        container.setScrollFactor(0);
+
+        const bg = this.scene.add.rectangle(0, 0, 300, 60, color);
+        bg.setStrokeStyle(3, 0xffffff, 0.8);
+        
+        const label = this.scene.add.text(0, 0, text, {
+            fontSize: '24px',
+            fill: '#fff',
+            fontStyle: 'bold'
+        });
+        label.setOrigin(0.5);
+
+        container.add([bg, label]);
+
+        // Tương tác
+        bg.setInteractive({ useHandCursor: true });
+        
+        bg.on('pointerover', () => {
+            this.scene.tweens.add({
+                targets: container,
+                scaleX: 1.1,
+                scaleY: 1.1,
+                duration: 100
+            });
+        });
+        
+        bg.on('pointerout', () => {
+            this.scene.tweens.add({
+                targets: container,
+                scaleX: 1,
+                scaleY: 1,
+                duration: 100
+            });
+        });
+        
+        bg.on('pointerdown', callback);
+
+        return container;
     }
 
     // Lấy máu hiện tại

@@ -11,13 +11,14 @@ export class PauseMenu {
 
     // Tạo UI pause menu
     create() {
-        const width = this.scene.game.config.width;
-        const height = this.scene.game.config.height;
+        const width = this.scene.scale.width;
+        const height = this.scene.scale.height;
 
         // Container cho pause menu
         this.container = this.scene.add.container(0, 0);
         this.container.setDepth(1000);
         this.container.setVisible(false);
+        this.container.setScrollFactor(0);
 
         // Overlay tối
         const overlay = this.scene.add.rectangle(

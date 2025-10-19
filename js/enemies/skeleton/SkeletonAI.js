@@ -97,6 +97,14 @@ export class SkeletonAI {
         }
     }
 
+    // Dừng AI
+    stop() {
+        this.state = 'dead';
+        if (this.skeleton.sprite && this.skeleton.sprite.body) {
+            this.skeleton.sprite.setVelocity(0);
+        }
+    }
+
     // Đứng yên
     idle() {
         this.skeleton.sprite.setVelocity(0);

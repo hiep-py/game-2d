@@ -87,6 +87,14 @@ export class SpiderAI {
         }
     }
 
+    // Dừng AI
+    stop() {
+        this.state = 'dead';
+        if (this.spider.sprite && this.spider.sprite.body) {
+            this.spider.sprite.setVelocity(0);
+        }
+    }
+
     // Đứng yên
     idle() {
         this.spider.sprite.setVelocity(0);

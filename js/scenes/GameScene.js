@@ -57,7 +57,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     applyDifficulty(difficulty) {
-        let enemyCount = 8;
+        let enemyCount = 7;
         let enemyHealthMultiplier = 1;
         let enemyDamageMultiplier = 1;
 
@@ -68,12 +68,12 @@ export class GameScene extends Phaser.Scene {
                 enemyDamageMultiplier = 0.7;
                 break;
             case 'normal':
-                enemyCount = 10;
+                enemyCount = 8;
                 enemyHealthMultiplier = 1;
                 enemyDamageMultiplier = 1;
                 break;
             case 'hard':
-                enemyCount = 15;
+                enemyCount = 12;
                 enemyHealthMultiplier = 1.5;
                 enemyDamageMultiplier = 1.3;
                 break;
@@ -128,8 +128,33 @@ export class GameScene extends Phaser.Scene {
     }
 
     createUI() {
-        // UI đã được xóa để giao diện sạch hơn
-        // Tất cả hướng dẫn đã có ở màn hình Home
-        // Nhấn ESC để pause
+        // Nút Pause ở góc phải trên
+        const pauseBtn = this.add.text(
+            this.scale.width - 20,
+            20,
+            '⏸ PAUSE',
+            {
+                fontSize: '20px',
+                fill: '#ffffff',
+                backgroundColor: '#e74c3c',
+                padding: { x: 15, y: 8 },
+                fontStyle: 'bold'
+            }
+        );
+        pauseBtn.setOrigin(1, 0);
+        pauseBtn.setDepth(100);
+        pauseBtn.setInteractive({ useHandCursor: true });
+        
+        pauseBtn.on('pointerover', () => {
+            pauseBtn.setScale(1.1);
+        });
+        
+        pauseBtn.on('pointerout', () => {
+            pauseBtn.setScale(1);
+        });
+        
+        pauseBtn.on('pointerdown', () => {
+            this.pauseMenu.pause();
+        });
     }
 }

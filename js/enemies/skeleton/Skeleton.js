@@ -179,23 +179,57 @@ export class Skeleton extends Enemy {
         });
     }
 
-    // Override chết
+    // Override die để có animation đặc biệt
     die() {
-        // Tạo hiệu ứng chết đặc biệt
-        SkeletonAssets.createDeathEffect(
-            this.scene,
-            this.sprite.x,
-            this.sprite.y
-        );
-
-        // Fade out
+        if (!this.sprite || !this.sprite.active) {
+            return; // Đã chết rồi
+        }
+        
+        console.log('[Skeleton] Die method called');
+        
+        // Đánh dấu không active ngay
+        this.sprite.active = false;
+        this.health = 0;
+        this.state = 'dead';
+        
+        // Dừng AI
+        if (this.ai && typeof this.ai.stop === 'function') {
+            this.ai.stop();
+        } else if (this.ai) {
+            // Nếu không có stop method, set state thủ công
+            this.ai.currentState = 'dead';
+        }
+        
+        // Tắt physics
+        if (this.sprite.body) {
+            this.sprite.body.enable = false;
+        }
+        
+        // Xóa thanh máu ngay
+        if (this.healthBar) {
+            this.healthBar.destroy();
+            this.healthBar = null;
+        }
+        if (this.healthBarBg) {
+            this.healthBarBg.destroy();
+            this.healthBarBg = null;
+        }
+        
+        // Hiệu ứng chết
+        this.sprite.setTint(this.config.visual.deathTint);
+        
+        // Animation chết
         this.scene.tweens.add({
             targets: this.sprite,
             alpha: 0,
-            scale: 0.5,
+            scale: 0,
             duration: this.config.visual.deathFadeDuration,
             onComplete: () => {
-                this.destroy();
+                console.log('[Skeleton] Animation complete, destroying sprite');
+                if (this.sprite) {
+                    this.sprite.destroy();
+                    this.sprite = null;
+                }
             }
         });
     }

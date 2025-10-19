@@ -45,6 +45,13 @@ export class Player {
         // Phím tấn công
         this.attackKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         
+        // Chuột trái để tấn công
+        scene.input.on('pointerdown', (pointer) => {
+            if (pointer.leftButtonDown()) {
+                this.attack();
+            }
+        });
+        
         // Phím đổi vũ khí
         this.weaponKeys = scene.input.keyboard.addKeys({
             q: Phaser.Input.Keyboard.KeyCodes.Q,
@@ -139,10 +146,15 @@ export class Player {
     // Xử lý tấn công
     handleAttack() {
         if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
-            const currentWeapon = this.weapons[this.currentWeaponIndex];
-            if (currentWeapon) {
-                currentWeapon.attack();
-            }
+            this.attack();
+        }
+    }
+
+    // Thực hiện tấn công
+    attack() {
+        const currentWeapon = this.weapons[this.currentWeaponIndex];
+        if (currentWeapon) {
+            currentWeapon.attack();
         }
     }
 

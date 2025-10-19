@@ -143,21 +143,55 @@ export class Spider extends Enemy {
 
     // Override chết
     die() {
-        // Hiệu ứng chết đặc biệt
-        SpiderAssets.createDeathEffect(
-            this.scene,
-            this.sprite.x,
-            this.sprite.y
-        );
-
-        // Fade out
+        if (!this.sprite || !this.sprite.active) {
+            return; // Đã chết rồi
+        }
+        
+        console.log('[Spider] Die method called');
+        
+        // Đánh dấu không active ngay
+        this.sprite.active = false;
+        this.health = 0;
+        this.state = 'dead';
+        
+        // Dừng AI
+        if (this.ai && typeof this.ai.stop === 'function') {
+            this.ai.stop();
+        } else if (this.ai) {
+            // Nếu không có stop method, set state thủ công
+            this.ai.currentState = 'dead';
+        }
+        
+        // Tắt physics
+        if (this.sprite.body) {
+            this.sprite.body.enable = false;
+        }
+        
+        // Xóa thanh máu ngay
+        if (this.healthBar) {
+            this.healthBar.destroy();
+            this.healthBar = null;
+        }
+        if (this.healthBarBg) {
+            this.healthBarBg.destroy();
+            this.healthBarBg = null;
+        }
+        
+        // Hiệu ứng chết
+        this.sprite.setTint(this.config.visual.deathTint);
+        
+        // Animation chết
         this.scene.tweens.add({
             targets: this.sprite,
             alpha: 0,
             scale: 0.3,
             duration: this.config.visual.deathFadeDuration,
             onComplete: () => {
-                this.destroy();
+                console.log('[Spider] Animation complete, destroying sprite');
+                if (this.sprite) {
+                    this.sprite.destroy();
+                    this.sprite = null;
+                }
             }
         });
     }

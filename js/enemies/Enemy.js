@@ -131,6 +131,11 @@ export class Enemy {
 
     // Nhận sát thương
     takeDamage(damage) {
+        // Kiểm tra đã chết
+        if (!this.sprite || !this.sprite.active || this.health <= 0) {
+            return;
+        }
+        
         // Kiểm tra cooldown để tránh hit nhiều lần
         const currentTime = Date.now();
         if (currentTime - this.lastHitTime < this.hitCooldown) {
@@ -138,12 +143,22 @@ export class Enemy {
         }
         this.lastHitTime = currentTime;
 
+        // Kiểm tra damage hợp lệ
+        if (isNaN(damage) || damage <= 0) {
+            console.warn(`[${this.type || 'Enemy'}] Invalid damage: ${damage}, using default 10`);
+            damage = 10;
+        }
+        
         // Giảm máu
         const oldHealth = this.health;
         this.health = Math.max(0, this.health - damage);
         
+        console.log(`[${this.type || 'Enemy'}] Took ${damage} damage: ${oldHealth} -> ${this.health}/${this.maxHealth}`);
+        
         // Đánh thức bản thân và quái xung quanh
-        this.alert();
+        if (!this.isAlerted) {
+            this.alert();
+        }
         
         // Hiệu ứng nhận sát thương
         this.sprite.setTint(0xff0000);
@@ -156,8 +171,12 @@ export class Enemy {
         // Cập nhật thanh máu
         this.updateHealthBar();
 
-        // Kiểm tra chết
+        // Kiểm tra chết - FORCE DIE nếu health <= 0
         if (this.health <= 0) {
+            console.log(`[${this.type || 'Enemy'}] Health <= 0 (${this.health}), FORCING DIE`);
+            // Set health = 0 để chắc chắn
+            this.health = 0;
+            // Gọi die ngay lập tức
             this.die();
         }
     }
@@ -269,49 +288,57 @@ export class Enemy {
 
     // Chết
     die() {
-        console.log(`[${this.type || 'Enemy'}] die() called, isDying: ${this.isDying}`);
-        
-        // Tránh gọi die() nhiều lần
-        if (this.isDying) {
-            console.log(`[${this.type || 'Enemy'}] Already dying, ignoring`);
+        if (!this.sprite) {
+            console.log(`[${this.type || 'Enemy'}] No sprite, already destroyed`);
             return;
         }
-        this.isDying = true;
-
-        console.log(`[${this.type || 'Enemy'}] Starting death animation`);
-
-        // Dừng mọi chuyển động
-        this.sprite.setVelocity(0, 0);
-
-        // Hiệu ứng chết
-        this.scene.tweens.add({
-            targets: this.sprite,
-            alpha: 0,
-            scale: 0.5,
-            duration: 300,
-            onComplete: () => {
-                console.log(`[${this.type || 'Enemy'}] Death animation complete, destroying`);
-                this.destroy();
-            }
-        });
-    }
-
-    // Hủy enemy
-    destroy() {
-        console.log(`[${this.type || 'Enemy'}] destroy() called`);
         
+        if (!this.sprite.active) {
+            console.log(`[${this.type || 'Enemy'}] Already dead (sprite.active = false)`);
+            return; // Đã chết rồi
+        }
+        
+        console.log(`[${this.type || 'Enemy'}] DIE METHOD EXECUTING - Health: ${this.health}, Active: ${this.sprite.active}`);
+        
+        // Đánh dấu không active ngay lập tức
+        this.sprite.active = false;
+        this.health = 0;
+        
+        // Dừng AI
+        this.state = 'dead';
+        
+        // Tắt physics
+        if (this.sprite.body) {
+            this.sprite.body.enable = false;
+        }
+        
+        // Hiệu ứng chết
+        this.sprite.setTint(0x000000);
+        
+        // Xóa thanh máu ngay
         if (this.healthBar) {
             this.healthBar.destroy();
-            console.log(`[${this.type || 'Enemy'}] Health bar destroyed`);
+            this.healthBar = null;
         }
         if (this.healthBarBg) {
             this.healthBarBg.destroy();
-            console.log(`[${this.type || 'Enemy'}] Health bar bg destroyed`);
+            this.healthBarBg = null;
         }
-        if (this.sprite) {
-            this.sprite.destroy();
-            console.log(`[${this.type || 'Enemy'}] Sprite destroyed`);
-        }
+        
+        // Animation chết
+        this.scene.tweens.add({
+            targets: this.sprite,
+            alpha: 0,
+            scale: 0,
+            duration: 300,
+            onComplete: () => {
+                console.log(`[${this.type || 'Enemy'}] Animation complete, destroying sprite`);
+                if (this.sprite) {
+                    this.sprite.destroy();
+                    this.sprite = null;
+                }
+            }
+        });
     }
 
     // Lấy vị trí

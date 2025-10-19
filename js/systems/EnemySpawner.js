@@ -12,8 +12,8 @@ export class EnemySpawner {
 
     // Spawn quái vật ngẫu nhiên
     spawnRandomEnemies(count) {
-        const minEnemies = Math.min(count, this.maxEnemies);
-        const enemyCount = Phaser.Math.Between(minEnemies, this.maxEnemies);
+        // Spawn chính xác số lượng được yêu cầu
+        const enemyCount = Math.min(count, this.maxEnemies);
 
         for (let i = 0; i < enemyCount; i++) {
             // Random spawn Skeleton hoặc Spider
